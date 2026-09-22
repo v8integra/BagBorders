@@ -17,6 +17,15 @@ local SPECIAL_BAG_FAMILY_MASK = 0x3
 
 local BORDER_TEXTURE = [[Interface\Common\WhiteIconFrame]]
 
+local function IsSpecialBagFamily(bagFamily)
+    return bagFamily and bagFamily ~= 0 and bit.band(bagFamily, SPECIAL_BAG_FAMILY_MASK) ~= 0
+end
+
+-- Shared with other modules (e.g. Modules/BagBar.lua) so special-bag detection
+-- and its color stay defined in exactly one place.
+BB.IsSpecialBagFamily = IsSpecialBagFamily
+BB.SPECIAL_COLOR = SPECIAL_COLOR
+
 local bagColors = {}
 local nextPaletteIndex = 1
 
@@ -26,7 +35,7 @@ local function GetColorForBag(bagID, bagFamily)
         return color
     end
 
-    if bagFamily and bagFamily ~= 0 and bit.band(bagFamily, SPECIAL_BAG_FAMILY_MASK) ~= 0 then
+    if IsSpecialBagFamily(bagFamily) then
         color = SPECIAL_COLOR
     else
         color = GENERAL_PALETTE[((nextPaletteIndex - 1) % #GENERAL_PALETTE) + 1]
@@ -144,6 +153,9 @@ SlashCmdList["BAGBORDERS"] = function(msg)
         print("BagBorders debug: " .. (BB.debug and "on" or "off"))
     elseif msg == "refresh" then
         RefreshCombinedBagColors()
+        if BB.RefreshBagBar then
+            BB.RefreshBagBar()
+        end
     else
         print("BagBorders: /bagborders debug | /bagborders refresh")
     end

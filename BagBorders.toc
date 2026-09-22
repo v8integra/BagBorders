@@ -7,3 +7,4 @@
 
 Core\Core.lua
 Modules\ContainerColors.lua
+Modules\BagBar.lua
