@@ -10,7 +10,7 @@ local ADDON_NAME, BB = ...
 -- have) are skipped.
 local PANEL_GAP = 8
 local COLUMNS = 10
-local PANEL_PADDING = 18
+local PANEL_PADDING = 24 -- a bit more margin now that the border itself is thicker
 local ITEM_STEP = 41 -- approx. item button size (37) plus grid spacing, used only to estimate lift height
 
 local REAGENT_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal, matches Modules/BagBar.lua
@@ -69,13 +69,13 @@ local function CreatePanel()
 
     -- Background fill matching Blizzard's own bag window color.
     local bg = CreateFrame("Frame", nil, panel, "FlatPanelBackgroundTemplate")
-    bg:SetPoint("TOPLEFT", 2, -2)
-    bg:SetPoint("BOTTOMRIGHT", -2, 2)
+    bg:SetPoint("TOPLEFT", 6, -6)
+    bg:SetPoint("BOTTOMRIGHT", -6, 6)
 
     panel:SetBackdrop({
         edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 12,
-        insets = { left = 2, right = 2, top = 2, bottom = 2 },
+        edgeSize = 20,
+        insets = { left = 5, right = 5, top = 5, bottom = 5 },
     })
     panel:SetBackdropBorderColor(BRONZE_TINT.r, BRONZE_TINT.g, BRONZE_TINT.b, 1)
 
