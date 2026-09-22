@@ -128,17 +128,18 @@ eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self)
     self:UnregisterEvent("PLAYER_LOGIN")
 
-    local ok1, err1 = pcall(hooksecurefunc, ContainerFrameCombinedBagsMixin, "Update", RefreshCombinedBagColors)
-    local ok2, err2 = pcall(hooksecurefunc, ContainerFrameMixin, "UpdateItemSlots", function(frame)
-        if frame:IsCombinedBagContainer() then
-            RefreshCombinedBagColors()
-        end
-    end)
+    -- Hook the frame INSTANCE, not the mixin table: ContainerFrameCombinedBags is a
+    -- static XML frame whose mixin="ContainerFrameCombinedBagsMixin" attribute copies
+    -- Update/UpdateItemSlots onto the instance at load time, long before this addon
+    -- runs. Hooking the mixin table afterward only patches that table's own copy and
+    -- never affects the frame's already-copied reference.
+    local ok1, err1 = pcall(hooksecurefunc, ContainerFrameCombinedBags, "Update", RefreshCombinedBagColors)
+    local ok2, err2 = pcall(hooksecurefunc, ContainerFrameCombinedBags, "UpdateItemSlots", RefreshCombinedBagColors)
 
     if not ok1 then
-        print("|cffff4444BagBorders:|r failed to hook ContainerFrameCombinedBagsMixin.Update - " .. tostring(err1))
+        print("|cffff4444BagBorders:|r failed to hook ContainerFrameCombinedBags.Update - " .. tostring(err1))
     end
     if not ok2 then
-        print("|cffff4444BagBorders:|r failed to hook ContainerFrameMixin.UpdateItemSlots - " .. tostring(err2))
+        print("|cffff4444BagBorders:|r failed to hook ContainerFrameCombinedBags.UpdateItemSlots - " .. tostring(err2))
     end
 end)
