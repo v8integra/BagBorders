@@ -23,7 +23,7 @@ local function CreatePanel()
         return panel
     end
 
-    panel = CreateFrame("Frame", "BagBordersReagentPanel", ContainerFrameCombinedBags, "BackdropTemplate")
+    panel = CreateFrame("Frame", "BagBordersReagentPanel", ContainerFrameCombinedBags)
     Mixin(panel, ContainerFrameMixin)
 
     panel.itemButtonPool = CreateFramePool("ItemButton", panel, "ContainerFrameItemButtonTemplate")
@@ -55,19 +55,17 @@ local function CreatePanel()
     -- this addon has no direct access to) rather than reimplementing it.
     panel.CalculateWidth = ContainerFrameCombinedBagsMixin.CalculateWidth
 
-    -- Give the panel its own backdrop, using the same fill color Blizzard's
-    -- own bag window uses (GetBackgroundColor is inherited from
-    -- ContainerFrameMixin), so it reads as attached to the window above it
-    -- instead of floating loose icons.
-    panel:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    local bgColor = panel:GetBackgroundColor()
-    panel:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, 0.95)
-    panel:SetBackdropBorderColor(0, 0, 0, 1)
+    -- Match Blizzard's own bag window border exactly, rather than a generic
+    -- tooltip-style backdrop: PortraitFrameFlatTemplate (what
+    -- ContainerFrameCombinedBags itself inherits) gets its border from a
+    -- child "NineSlice" frame plus a separate flat background fill, both
+    -- standard, freely-inheritable templates - reuse both directly.
+    local bg = CreateFrame("Frame", nil, panel, "FlatPanelBackgroundTemplate")
+    bg:SetPoint("TOPLEFT", 2, -2)
+    bg:SetPoint("BOTTOMRIGHT", -2, 2)
+
+    local nineSlice = CreateFrame("Frame", nil, panel, "NineSlicePanelTemplate")
+    NineSliceUtil.ApplyLayout(nineSlice, NineSliceUtil.GetLayout("PortraitFrameTemplate"))
 
     panel:SetPoint("TOP", ContainerFrameCombinedBags, "BOTTOM", 0, -PANEL_GAP)
     panel:Hide()
