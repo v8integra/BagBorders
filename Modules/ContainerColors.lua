@@ -74,24 +74,54 @@ local function RefreshCombinedBagColors()
     wipe(bagColors)
     nextPaletteIndex = 1
 
+    local seen, colored = 0, 0
     for _, itemButton in combinedFrame:EnumerateValidItems() do
         if itemButton then
-            ColorItemButton(itemButton)
+            seen = seen + 1
+            local ok, err = pcall(ColorItemButton, itemButton)
+            if ok then
+                colored = colored + 1
+            elseif BB.debug then
+                print("|cffff4444BagBorders error:|r " .. tostring(err))
+            end
         end
+    end
+
+    if BB.debug then
+        print(("|cff44ff44BagBorders:|r saw %d item buttons, colored %d"):format(seen, colored))
     end
 end
 
 BB.RefreshCombinedBagColors = RefreshCombinedBagColors
+
+SLASH_BAGBORDERS1 = "/bagborders"
+SlashCmdList["BAGBORDERS"] = function(msg)
+    if msg == "debug" then
+        BB.debug = not BB.debug
+        print("BagBorders debug: " .. (BB.debug and "on" or "off"))
+    elseif msg == "refresh" then
+        RefreshCombinedBagColors()
+    else
+        print("BagBorders: /bagborders debug | /bagborders refresh")
+    end
+end
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:SetScript("OnEvent", function(self)
     self:UnregisterEvent("PLAYER_LOGIN")
 
-    hooksecurefunc(ContainerFrameCombinedBagsMixin, "Update", RefreshCombinedBagColors)
-    hooksecurefunc(ContainerFrameMixin, "UpdateItemSlots", function(frame)
+    local ok1, err1 = pcall(hooksecurefunc, ContainerFrameCombinedBagsMixin, "Update", RefreshCombinedBagColors)
+    local ok2, err2 = pcall(hooksecurefunc, ContainerFrameMixin, "UpdateItemSlots", function(frame)
         if frame:IsCombinedBagContainer() then
             RefreshCombinedBagColors()
         end
     end)
+
+    if not ok1 then
+        print("|cffff4444BagBorders:|r failed to hook ContainerFrameCombinedBagsMixin.Update - " .. tostring(err1))
+    end
+    if not ok2 then
+        print("|cffff4444BagBorders:|r failed to hook ContainerFrameMixin.UpdateItemSlots - " .. tostring(err2))
+    end
 end)
