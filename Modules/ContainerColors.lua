@@ -1,15 +1,16 @@
 local ADDON_NAME, BB = ...
 
--- Neutral cycling palette for general bags, assigned in bag-setup order.
+-- Cycling palette for general bags, assigned in bag-setup order. Saturated and
+-- blended with ADD so they read clearly against the dark item-slot background.
 local GENERAL_PALETTE = {
-    { r = 0.55, g = 0.55, b = 0.60 }, -- slate
-    { r = 0.60, g = 0.52, b = 0.40 }, -- tan
-    { r = 0.45, g = 0.55, b = 0.55 }, -- teal-gray
-    { r = 0.58, g = 0.48, b = 0.55 }, -- mauve
+    { r = 0.20, g = 0.75, b = 0.95 }, -- cyan
+    { r = 0.95, g = 0.55, b = 0.10 }, -- orange
+    { r = 0.35, g = 0.90, b = 0.35 }, -- green
+    { r = 0.75, g = 0.40, b = 0.95 }, -- violet
 }
 
 -- Fixed color for special bags (quiver/ammo pouch), independent of slot position.
-local SPECIAL_COLOR = { r = 0.85, g = 0.65, b = 0.15 } -- amber
+local SPECIAL_COLOR = { r = 1.00, g = 0.85, b = 0.10 } -- gold
 
 -- bagFamily bit flags for Quiver (1) and Ammo Pouch (2).
 local SPECIAL_BAG_FAMILY_MASK = 0x3
@@ -41,11 +42,23 @@ local function GetOrCreateBorder(itemButton)
     if not border then
         border = itemButton:CreateTexture(nil, "OVERLAY", nil, 0)
         border:SetTexture(BORDER_TEXTURE)
+        border:SetBlendMode("ADD")
         border:SetPoint("TOPLEFT", itemButton, "TOPLEFT", 0, 0)
         border:SetPoint("BOTTOMRIGHT", itemButton, "BOTTOMRIGHT", 0, 0)
         itemButton.BagBordersBorder = border
     end
     return border
+end
+
+local function GetOrCreateFreeSlotLabel(itemButton)
+    local label = itemButton.BagBordersFreeLabel
+    if not label then
+        label = itemButton:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        label:SetPoint("TOPRIGHT", itemButton, "TOPRIGHT", -1, -1)
+        label:SetJustifyH("RIGHT")
+        itemButton.BagBordersFreeLabel = label
+    end
+    return label
 end
 
 local function ColorItemButton(itemButton)
@@ -54,14 +67,14 @@ local function ColorItemButton(itemButton)
         return nil
     end
 
-    local _, bagFamily = C_Container.GetContainerNumFreeSlots(bagID)
+    local numFreeSlots, bagFamily = C_Container.GetContainerNumFreeSlots(bagID)
     local color = GetColorForBag(bagID, bagFamily)
 
     local border = GetOrCreateBorder(itemButton)
     border:SetVertexColor(color.r, color.g, color.b, 1)
     border:Show()
 
-    return bagID, color
+    return bagID, color, numFreeSlots
 end
 
 local function RefreshCombinedBagColors()
@@ -78,16 +91,29 @@ local function RefreshCombinedBagColors()
 
     local seen, colored = 0, 0
     local bagSlotCounts, bagColorNames = {}, {}
+    local labeledBags = {}
     for _, itemButton in combinedFrame:EnumerateValidItems() do
         if itemButton then
             seen = seen + 1
-            local ok, resultBagID, resultColor = pcall(ColorItemButton, itemButton)
+            if itemButton.BagBordersFreeLabel then
+                itemButton.BagBordersFreeLabel:Hide()
+            end
+
+            local ok, resultBagID, resultColor, resultFreeSlots = pcall(ColorItemButton, itemButton)
             if ok then
                 if resultBagID then
                     colored = colored + 1
                     bagSlotCounts[resultBagID] = (bagSlotCounts[resultBagID] or 0) + 1
                     if resultColor then
                         bagColorNames[resultBagID] = string.format("%.2f/%.2f/%.2f", resultColor.r, resultColor.g, resultColor.b)
+                    end
+
+                    if not labeledBags[resultBagID] then
+                        labeledBags[resultBagID] = true
+                        local label = GetOrCreateFreeSlotLabel(itemButton)
+                        label:SetText(("(%d)"):format(resultFreeSlots or 0))
+                        label:SetTextColor(resultColor.r, resultColor.g, resultColor.b)
+                        label:Show()
                     end
                 end
             elseif BB.debug then

@@ -42,8 +42,8 @@ Forever's bag UI has a toggle between showing each equipped bag as a separate fr
   - Special bag types (quiver, ammo pouch, and structured to be extensible to other bag families later if desired): assigned a **fixed, dedicated color** regardless of which physical bag slot they're equipped in — e.g., quivers/ammo pouches are always the same color, so the player learns to recognize "that color = ranged ammo" rather than having to re-map colors every time bags are rearranged.
   - Detection: read `bagFamily` from `C_Container.GetContainerNumFreeSlots(bagIndex)` per bag, compare against known quiver/ammo pouch family values, and apply the fixed special color when matched; otherwise assign from the general cycling palette.
 
-### 2. Per-Bag Slot Tracker — **Dropped (2026-09-22)**
-- Originally spec'd to track and display total/free slot counts per bag. Dropped because Blizzard added this natively to Forever's own bag UI (quiver shows ammo count, general bags show empty-slot count) — no longer a gap this addon needs to fill.
+### 2. Per-Bag Slot Tracker
+- Originally dropped (2026-09-22) because Blizzard added a native empty-slot display. **Reinstated in minimal form same day**: Blizzard's native display turned out to be buggy in this beta build — it only shows the free-slot count on hover, and on the base state reverts to showing an unrelated item's stack count (e.g. the quiver's arrow count bleeding onto the backpack) instead of the free-slot number. Rather than scraping Blizzard's tooltip/text widget (fragile, patch-dependent), `Modules/ContainerColors.lua` now computes free slots directly via `C_Container.GetContainerNumFreeSlots(bagID)` (already being read per-bag for special-bag detection) and displays `(N)` in the top-right corner of the first slot of each bag group, color-matched to that bag's border color. Updates on the same refresh hook as the border coloring.
 
 ## Explicit Non-Goals
 
