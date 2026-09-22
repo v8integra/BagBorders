@@ -10,7 +10,9 @@ local ADDON_NAME, BB = ...
 -- have) are skipped.
 local PANEL_GAP = 8
 local COLUMNS = 10
-local PANEL_PADDING = 38 -- a bit more margin now that the border itself is thicker
+local PANEL_PADDING_HEIGHT = 38 -- margin above+below the item grid; split evenly to center it
+local PANEL_PADDING_WIDTH = 28 -- narrower than the height padding - total width was ~10px too wide
+local RIGHT_MARGIN = 14 -- gap between the rightmost column and the border, wider than the default 7
 local ITEM_STEP = 41 -- approx. item button size (37) plus grid spacing, used only to estimate lift height
 
 local REAGENT_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal, matches Modules/BagBar.lua
@@ -50,11 +52,23 @@ local function CreatePanel()
     end
 
     function panel:GetPaddingWidth()
-        return PANEL_PADDING
+        return PANEL_PADDING_WIDTH
     end
 
     function panel:GetPaddingHeight()
-        return PANEL_PADDING
+        return PANEL_PADDING_HEIGHT
+    end
+
+    -- The default anchor (ContainerFrameMixin:GetInitialItemAnchor) insets
+    -- the grid only 9px up from the bottom, leaving the rest of
+    -- GetPaddingHeight() as dead space above it - fine for a normal bag
+    -- window where that space is the title bar, but this panel has none, so
+    -- the grid just looked stuck to the bottom. Split the padding evenly
+    -- instead so it's centered, and widen the right inset so the grid
+    -- clears the (now much thicker) border.
+    function panel:GetInitialItemAnchor()
+        local yOffset = self:GetPaddingHeight() / 2
+        return AnchorUtil.CreateAnchor("BOTTOMRIGHT", self, "BOTTOMRIGHT", -RIGHT_MARGIN, yOffset)
     end
 
     -- ContainerFrameMixin:CalculateWidth() (which this panel would otherwise
@@ -91,7 +105,7 @@ local function EstimateLiftAmount(bagID)
         return 0
     end
     local rows = math.ceil(numSlots / COLUMNS)
-    return rows * ITEM_STEP + PANEL_PADDING + PANEL_GAP
+    return rows * ITEM_STEP + PANEL_PADDING_HEIGHT + PANEL_GAP
 end
 
 local function StyleItemButton(itemButton, isFirst, numFreeSlots)
