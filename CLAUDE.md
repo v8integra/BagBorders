@@ -1,6 +1,6 @@
 # BagBorders (working title — rename before publishing)
 
-A World of Warcraft: Forever addon that visually distinguishes individual bags when the player has "Combined Bags" (single-bag) mode enabled, and tracks per-bag slot usage.
+A World of Warcraft: Forever addon that visually distinguishes individual bags when the player has "Combined Bags" (single-bag) mode enabled.
 
 ## Problem Statement
 
@@ -42,14 +42,8 @@ Forever's bag UI has a toggle between showing each equipped bag as a separate fr
   - Special bag types (quiver, ammo pouch, and structured to be extensible to other bag families later if desired): assigned a **fixed, dedicated color** regardless of which physical bag slot they're equipped in — e.g., quivers/ammo pouches are always the same color, so the player learns to recognize "that color = ranged ammo" rather than having to re-map colors every time bags are rearranged.
   - Detection: read `bagFamily` from `C_Container.GetContainerNumFreeSlots(bagIndex)` per bag, compare against known quiver/ammo pouch family values, and apply the fixed special color when matched; otherwise assign from the general cycling palette.
 
-### 2. Per-Bag Slot Tracker
-- For each equipped bag (including specialty bags), track and display:
-  - Total slot count (`C_Container.GetContainerNumSlots`)
-  - Free/empty slot count (`C_Container.GetContainerNumFreeSlots`)
-- Display format/placement TBD — options to consider during implementation:
-  - A small text label pinned near the start of each bag's slot range within the combined view (e.g., "12/16" near the first slot of that bag group)
-  - A separate compact summary panel/tooltip listing all equipped bags with their slot counts
-  - Whichever approach is chosen, it must update live as items are added/removed/moved, in sync with the border coloring refresh (same update hook).
+### 2. Per-Bag Slot Tracker — **Dropped (2026-09-22)**
+- Originally spec'd to track and display total/free slot counts per bag. Dropped because Blizzard added this natively to Forever's own bag UI (quiver shows ammo count, general bags show empty-slot count) — no longer a gap this addon needs to fill.
 
 ## Explicit Non-Goals
 
@@ -61,5 +55,6 @@ Forever's bag UI has a toggle between showing each equipped bag as a separate fr
 
 - Final addon name (currently a placeholder — check for CurseForge naming collisions before publishing, same process used for TrailBeacon).
 - Final color palette for general bags and the fixed special-bag-type color(s).
-- Exact placement/format of the slot-count display (inline label vs. summary panel vs. tooltip).
-- ~~Confirm at implementation time whether item buttons' existing border texture can be repurposed via `SetVertexColor`, or whether a new texture overlay is needed to avoid visual conflict with item-quality coloring — inspect `ContainerFrame.lua`'s item button template/border logic directly before deciding.~~ **Resolved (2026-09-22):** `IconBorder` is exclusively driven by `SetItemButtonQuality` for item rarity, sized to match the icon, and hidden entirely for common-quality items — confirmed via `Blizzard_ItemButton/Mainline/ItemButtonTemplate.lua`. It cannot be repurposed. Feature 1 instead creates a new texture (`Interface\Common\WhiteIconFrame`, tinted via `SetVertexColor`) anchored with an outward outset around the whole item button, forming a distinct outer ring outside Blizzard's own inner quality border.
+- ~~Exact placement/format of the slot-count display (inline label vs. summary panel vs. tooltip).~~ Moot — Feature 2 was dropped since Blizzard now shows this natively.
+- ~~Confirm at implementation time whether item buttons' existing border texture can be repurposed via `SetVertexColor`, or whether a new texture overlay is needed to avoid visual conflict with item-quality coloring — inspect `ContainerFrame.lua`'s item button template/border logic directly before deciding.~~ **Resolved (2026-09-22):** `IconBorder` is exclusively driven by `SetItemButtonQuality` for item rarity, sized to match the icon, and hidden entirely for common-quality items — confirmed via `Blizzard_ItemButton/Mainline/ItemButtonTemplate.lua`. It cannot be repurposed. Feature 1 instead creates a new texture (`Interface\Common\WhiteIconFrame`, tinted via `SetVertexColor`) anchored flush to each item button's own bounds, forming a distinct outer ring outside Blizzard's own inner quality border without bleeding into adjacent slots.
+- **Resolved (2026-09-22):** In-game testing confirmed the border-coloring hook must target the `ContainerFrameCombinedBags` frame *instance* directly (`hooksecurefunc(ContainerFrameCombinedBags, "Update"/"UpdateItemSlots", ...)`), not the `ContainerFrameCombinedBagsMixin`/`ContainerFrameMixin` tables — the frame's `mixin=` XML attribute copies those functions onto the instance at load time, so hooking the mixin table afterward never affects the already-shown frame. Feature 1 is confirmed working end-to-end in-game as of this date.
