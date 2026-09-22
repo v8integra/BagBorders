@@ -16,24 +16,6 @@ local ITEM_STEP = 41 -- approx. item button size (37) plus grid spacing, used on
 local REAGENT_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal, matches Modules/BagBar.lua
 local BORDER_TEXTURE = [[Interface\Common\WhiteIconFrame]]
 
--- Same edge/corner art as NineSliceLayouts.PortraitFrameTemplate (what
--- ContainerFrameCombinedBags itself uses) so the material matches, but with
--- the top corners' y-offset zeroed out. Blizzard's own layout offsets those
--- corners upward by 16px (TopLeftCorner uses an even bigger portrait-shaped
--- piece) to make room for a title bar/portrait icon; with no title bar here,
--- that offset just made the border overhang above the panel and made the
--- left/right edges stretch past the actual item grid.
-local PANEL_BORDER_LAYOUT = {
-    TopLeftCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerTopLeft", x = -8, y = 0 },
-    TopRightCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerTopRight", x = 4, y = 0 },
-    BottomLeftCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerBottomLeft", x = -8, y = -3 },
-    BottomRightCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerBottomRight", x = 4, y = -3 },
-    TopEdge = { layer = "OVERLAY", atlas = "_UI-Frame-Metal-EdgeTop" },
-    BottomEdge = { layer = "OVERLAY", atlas = "_UI-Frame-Metal-EdgeBottom" },
-    LeftEdge = { layer = "OVERLAY", atlas = "!UI-Frame-Metal-EdgeLeft" },
-    RightEdge = { layer = "OVERLAY", atlas = "!UI-Frame-Metal-EdgeRight" },
-}
-
 local panel
 
 local function CreatePanel()
@@ -82,8 +64,16 @@ local function CreatePanel()
     bg:SetPoint("TOPLEFT", 2, -2)
     bg:SetPoint("BOTTOMRIGHT", -2, 2)
 
+    -- The "Metal" atlas family (what PortraitFrameTemplate/ButtonFrameTemplateNoPortrait
+    -- use, matching ContainerFrameCombinedBags itself) is sized for a large
+    -- ornate window - even with corner offsets zeroed, the corner art itself
+    -- is tall enough to make a short chrome-less panel's sides look
+    -- stretched. NineSliceLayouts.SimplePanelTemplate uses the same, smaller
+    -- "SimpleMetal" corner piece (mirrored) on all four corners and, by
+    -- construction, the exact same edge texture on top and bottom - exactly
+    -- the plain, uniform border this panel needs.
     local nineSlice = CreateFrame("Frame", nil, panel, "NineSlicePanelTemplate")
-    NineSliceUtil.ApplyLayout(nineSlice, PANEL_BORDER_LAYOUT)
+    NineSliceUtil.ApplyLayout(nineSlice, NineSliceUtil.GetLayout("SimplePanelTemplate"))
 
     panel:SetPoint("TOP", ContainerFrameCombinedBags, "BOTTOM", 0, -PANEL_GAP)
     panel:Hide()
