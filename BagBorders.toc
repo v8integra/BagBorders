@@ -4,6 +4,7 @@
 ## Author: Keith Francis
 ## Version: 0.1.0
 ## SavedVariables: BagBordersDB
+## IconTexture: Interface\AddOns\BagBorders\Media\Icon\BagBordersIcon.tga
 
 Core\Core.lua
 Modules\ContainerColors.lua
