@@ -1,13 +1,13 @@
 local ADDON_NAME, BB = ...
 
 local GENERAL_LABEL_COLOR = { r = 1.00, g = 1.00, b = 1.00 } -- white
+local REAGENT_LABEL_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal
 
 local GENERAL_BAG_BUTTON_NAMES = {
     "CharacterBag0Slot",
     "CharacterBag1Slot",
     "CharacterBag2Slot",
     "CharacterBag3Slot",
-    "CharacterReagentBag0Slot",
 }
 
 local function GetOrCreateBarLabel(button)
@@ -57,6 +57,22 @@ local function RefreshBagBar()
     backpackLabel:SetText(("(%d)"):format(generalFree))
     backpackLabel:SetTextColor(GENERAL_LABEL_COLOR.r, GENERAL_LABEL_COLOR.g, GENERAL_LABEL_COLOR.b)
     backpackLabel:Show()
+
+    -- The reagent bag opens as its own independent window (not part of the
+    -- combined view), so it always gets its own count on its own icon rather
+    -- than folding into the backpack's general total.
+    local reagentButton = CharacterReagentBag0Slot
+    if reagentButton then
+        if reagentButton:HasBagEquipped() then
+            local numFreeSlots = C_Container.GetContainerNumFreeSlots(reagentButton:GetBagID()) or 0
+            local label = GetOrCreateBarLabel(reagentButton)
+            label:SetText(("(%d)"):format(numFreeSlots))
+            label:SetTextColor(REAGENT_LABEL_COLOR.r, REAGENT_LABEL_COLOR.g, REAGENT_LABEL_COLOR.b)
+            label:Show()
+        elseif reagentButton.BagBordersBarLabel then
+            reagentButton.BagBordersBarLabel:Hide()
+        end
+    end
 end
 
 BB.RefreshBagBar = RefreshBagBar
