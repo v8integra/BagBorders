@@ -1,0 +1,8 @@
+## Interface: 120105
+## Title: BagBorders
+## Notes: Colors bag slot borders by originating bag in Combined Bags mode, and tracks per-bag slot usage.
+## Author: Keith Francis
+## Version: 0.1.0
+## SavedVariables: BagBordersDB
+
+Core\Core.lua
