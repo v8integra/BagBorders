@@ -51,7 +51,7 @@ end
 local function ColorItemButton(itemButton)
     local bagID = itemButton:GetBagID()
     if not bagID then
-        return
+        return nil
     end
 
     local _, bagFamily = C_Container.GetContainerNumFreeSlots(bagID)
@@ -60,6 +60,8 @@ local function ColorItemButton(itemButton)
     local border = GetOrCreateBorder(itemButton)
     border:SetVertexColor(color.r, color.g, color.b, 1)
     border:Show()
+
+    return bagID, color
 end
 
 local function RefreshCombinedBagColors()
@@ -75,20 +77,35 @@ local function RefreshCombinedBagColors()
     nextPaletteIndex = 1
 
     local seen, colored = 0, 0
+    local bagSlotCounts, bagColorNames = {}, {}
     for _, itemButton in combinedFrame:EnumerateValidItems() do
         if itemButton then
             seen = seen + 1
-            local ok, err = pcall(ColorItemButton, itemButton)
+            local ok, resultBagID, resultColor = pcall(ColorItemButton, itemButton)
             if ok then
-                colored = colored + 1
+                if resultBagID then
+                    colored = colored + 1
+                    bagSlotCounts[resultBagID] = (bagSlotCounts[resultBagID] or 0) + 1
+                    if resultColor then
+                        bagColorNames[resultBagID] = string.format("%.2f/%.2f/%.2f", resultColor.r, resultColor.g, resultColor.b)
+                    end
+                end
             elseif BB.debug then
-                print("|cffff4444BagBorders error:|r " .. tostring(err))
+                print("|cffff4444BagBorders error:|r " .. tostring(resultBagID))
             end
         end
     end
 
     if BB.debug then
         print(("|cff44ff44BagBorders:|r saw %d item buttons, colored %d"):format(seen, colored))
+        local bagIDs = {}
+        for bagID in pairs(bagSlotCounts) do
+            table.insert(bagIDs, bagID)
+        end
+        table.sort(bagIDs)
+        for _, bagID in ipairs(bagIDs) do
+            print(("  bag %d: %d slots, color %s"):format(bagID, bagSlotCounts[bagID], bagColorNames[bagID] or "?"))
+        end
     end
 end
 
