@@ -16,35 +16,21 @@ local ITEM_STEP = 41 -- approx. item button size (37) plus grid spacing, used on
 local REAGENT_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal, matches Modules/BagBar.lua
 local BORDER_TEXTURE = [[Interface\Common\WhiteIconFrame]]
 
--- SimplePanelTemplate's border was the right shape but the wrong color
--- (silver "SimpleMetal" family vs. the bronze "Metal" family the main
--- window uses). Reuse the bronze BOTTOM edge/corner art for all four sides
--- instead of the dedicated (oversized, portrait-shaped) top pieces, and
--- rotate what goes at the top 180 degrees so it reads the same way the
--- bottom already does. Registered under a name so
--- NineSliceUtil.UpdateCornerCropping (which looks layouts up by name) can
--- find it too.
-local PANEL_LAYOUT_NAME = "BagBordersReagentPanel"
-
-local function EnsurePanelLayoutRegistered()
-    if NineSliceUtil.GetLayout(PANEL_LAYOUT_NAME) then
-        return
-    end
-    -- A 180-degree rotation swaps both axes, so a corner made by rotating
-    -- BottomLeft art actually lands correctly as a TopRight shape (and vice
-    -- versa) - cross the atlases here; the rotation itself is applied after
-    -- ApplyLayout, once the pieces exist.
-    NineSliceUtil.AddLayout(PANEL_LAYOUT_NAME, {
-        TopLeftCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerBottomRight", x = -8, y = 0 },
-        TopRightCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerBottomLeft", x = 4, y = 0 },
-        BottomLeftCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerBottomLeft", x = -8, y = -3 },
-        BottomRightCorner = { layer = "OVERLAY", atlas = "UI-Frame-Metal-CornerBottomRight", x = 4, y = -3 },
-        TopEdge = { layer = "OVERLAY", atlas = "_UI-Frame-Metal-EdgeBottom" },
-        BottomEdge = { layer = "OVERLAY", atlas = "_UI-Frame-Metal-EdgeBottom" },
-        LeftEdge = { layer = "OVERLAY", atlas = "!UI-Frame-Metal-EdgeLeft" },
-        RightEdge = { layer = "OVERLAY", atlas = "!UI-Frame-Metal-EdgeRight" },
-    })
-end
+-- /run atlas dimension check confirmed the "Metal" family corner pieces are
+-- 95-100px native size - built for a large ornate dialog (character panel,
+-- spellbook), not a compact panel. Even cropped, the top corners (only the
+-- bottom ones get cropped by NineSliceUtil.UpdateCornerCropping) stayed
+-- full-size and bled down through the content, and the bottom crop math
+-- went negative on a panel this short, which is why those corners vanished
+-- entirely. SimplePanelTemplate's "SimpleMetal" pieces are the right scale
+-- (and already use one identical texture for top and bottom, by
+-- construction) - tint them bronze with SetVertexColor instead of switching
+-- to an oversized atlas family.
+local BRONZE_TINT = { r = 1.00, g = 0.80, b = 0.45 }
+local NINE_SLICE_PIECE_NAMES = {
+    "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
+    "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
+}
 
 local panel
 
@@ -94,21 +80,13 @@ local function CreatePanel()
     bg:SetPoint("TOPLEFT", 2, -2)
     bg:SetPoint("BOTTOMRIGHT", -2, 2)
 
-    EnsurePanelLayoutRegistered()
-    panel.layoutType = PANEL_LAYOUT_NAME
-
     local nineSlice = CreateFrame("Frame", nil, panel, "NineSlicePanelTemplate")
-    panel.NineSlice = nineSlice -- NineSliceUtil.UpdateCornerCropping looks for this exact key
-    NineSliceUtil.ApplyLayout(nineSlice, NineSliceUtil.GetLayout(PANEL_LAYOUT_NAME))
-
-    if nineSlice.TopLeftCorner then
-        nineSlice.TopLeftCorner:SetRotation(math.pi)
-    end
-    if nineSlice.TopRightCorner then
-        nineSlice.TopRightCorner:SetRotation(math.pi)
-    end
-    if nineSlice.TopEdge then
-        nineSlice.TopEdge:SetRotation(math.pi)
+    NineSliceUtil.ApplyLayout(nineSlice, NineSliceUtil.GetLayout("SimplePanelTemplate"))
+    for _, pieceName in ipairs(NINE_SLICE_PIECE_NAMES) do
+        local piece = nineSlice[pieceName]
+        if piece then
+            piece:SetVertexColor(BRONZE_TINT.r, BRONZE_TINT.g, BRONZE_TINT.b)
+        end
     end
 
     panel:SetPoint("TOP", ContainerFrameCombinedBags, "BOTTOM", 0, -PANEL_GAP)
@@ -177,11 +155,6 @@ local function RefreshReagentPanel()
     p:SetBagSize(C_Container.GetContainerNumSlots(bagID))
     p:UpdateItemSlots()
     p:SetSize(p:CalculateWidth(), p:CalculateHeight())
-    -- Crops the bottom corner pieces down when the panel is too short for
-    -- their full native art size - the same call ContainerFrameMixin:UpdateFrameSize()
-    -- makes for a normal bag window, which this panel skips the rest of
-    -- (see the CalculateWidth note above) since it has no title bar to size.
-    NineSliceUtil.UpdateCornerCropping(p, p:GetHeight())
     p:UpdateItemLayout()
     p:AddItemsForRefresh()
 
