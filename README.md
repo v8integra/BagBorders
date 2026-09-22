@@ -6,11 +6,12 @@ A World of Warcraft: Forever addon that visually distinguishes individual bags w
 
 ## Status
 
-Bare scaffold — no features yet. Currently implemented:
+Feature 1 implemented. Currently implemented:
 
-- TOC manifest and SavedVariables-backed core namespace (`Core/Core.lua`), with a `db`-ready callback system for modules to hook into once SavedVariables are loaded. No default settings committed yet — the color palette and slot-count display format are both still open questions in [CLAUDE.md](CLAUDE.md), so nothing's been guessed ahead of those decisions.
+- TOC manifest and SavedVariables-backed core namespace (`Core/Core.lua`), with a `db`-ready callback system for modules to hook into once SavedVariables are loaded.
+- **Feature 1: Per-Bag Border Coloring** (`Modules/ContainerColors.lua`) — while Combined Bags mode is active, every item slot gets a colored outer border keyed to its originating bag. General bags cycle through a 4-color neutral palette in bag-setup order; special bags (quiver/ammo pouch, detected via `bagFamily`) always get a fixed amber border regardless of position. The border is a new texture layered outside Blizzard's own item-quality border, so it never visually conflicts with rarity coloring. Hooks `ContainerFrameCombinedBagsMixin:Update` and `ContainerFrameMixin:UpdateItemSlots` (guarded by `IsCombinedBagContainer()`), re-coloring on every refresh and bag-slot rebuild.
 
-Not yet built: per-bag border coloring (Feature 1), per-bag slot tracker (Feature 2). See [CLAUDE.md](CLAUDE.md) for the full feature spec.
+Not yet built: per-bag slot tracker (Feature 2). The exact palette and special-bag color are still first-pass placeholders — see [CLAUDE.md](CLAUDE.md) for the open items list.
 
 ## Installation (development)
 

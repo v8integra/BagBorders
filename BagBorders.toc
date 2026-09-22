@@ -6,3 +6,4 @@
 ## SavedVariables: BagBordersDB
 
 Core\Core.lua
+Modules\ContainerColors.lua
