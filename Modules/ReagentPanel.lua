@@ -11,6 +11,7 @@ local ADDON_NAME, BB = ...
 local PANEL_GAP = 8
 local COLUMNS = 10
 local PANEL_PADDING = 18
+local ITEM_STEP = 41 -- approx. item button size (37) plus grid spacing, used only to estimate lift height
 
 local REAGENT_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal, matches Modules/BagBar.lua
 local BORDER_TEXTURE = [[Interface\Common\WhiteIconFrame]]
@@ -22,7 +23,7 @@ local function CreatePanel()
         return panel
     end
 
-    panel = CreateFrame("Frame", "BagBordersReagentPanel", ContainerFrameCombinedBags)
+    panel = CreateFrame("Frame", "BagBordersReagentPanel", ContainerFrameCombinedBags, "BackdropTemplate")
     Mixin(panel, ContainerFrameMixin)
 
     panel.itemButtonPool = CreateFramePool("ItemButton", panel, "ContainerFrameItemButtonTemplate")
@@ -40,10 +41,33 @@ local function CreatePanel()
         return PANEL_PADDING
     end
 
+    -- Give the panel its own backdrop, using the same fill color Blizzard's
+    -- own bag window uses (GetBackgroundColor is inherited from
+    -- ContainerFrameMixin), so it reads as attached to the window above it
+    -- instead of floating loose icons.
+    panel:SetBackdrop({
+        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        edgeSize = 12,
+        insets = { left = 3, right = 3, top = 3, bottom = 3 },
+    })
+    local bgColor = panel:GetBackgroundColor()
+    panel:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, 0.95)
+    panel:SetBackdropBorderColor(0, 0, 0, 1)
+
     panel:SetPoint("TOP", ContainerFrameCombinedBags, "BOTTOM", 0, -PANEL_GAP)
     panel:Hide()
 
     return panel
+end
+
+local function EstimateLiftAmount(bagID)
+    local numSlots = C_Container.GetContainerNumSlots(bagID) or 0
+    if numSlots == 0 then
+        return 0
+    end
+    local rows = math.ceil(numSlots / COLUMNS)
+    return rows * ITEM_STEP + PANEL_PADDING + PANEL_GAP
 end
 
 local function StyleItemButton(itemButton, isFirst, numFreeSlots)
@@ -141,4 +165,38 @@ eventFrame:SetScript("OnEvent", function(self)
             end
         end
     end)
+
+    -- UpdateContainerFrameAnchors repositions every open bag frame from
+    -- scratch on every call (ClearAllPoints + SetPoint, not incremental), and
+    -- anchors the first one to the screen's bottom-right corner with just
+    -- enough clearance for the bag bar - not enough for our panel underneath
+    -- it too. Nudge that same anchor up by the panel's height each time this
+    -- runs, reading the freshly-set point back so there's no cumulative
+    -- drift. This is a plain global function (not a mixin table copied onto
+    -- an instance), so hooksecurefunc on it works reliably.
+    local ok, err = pcall(hooksecurefunc, "UpdateContainerFrameAnchors", function()
+        local combinedFrame = ContainerFrameCombinedBags
+        if not combinedFrame or not combinedFrame:IsShown() then
+            return
+        end
+
+        local reagentButton = CharacterReagentBag0Slot
+        if not (reagentButton and reagentButton:HasBagEquipped()) then
+            return
+        end
+
+        local liftAmount = EstimateLiftAmount(reagentButton:GetBagID())
+        if liftAmount <= 0 then
+            return
+        end
+
+        local point, relativeTo, relativePoint, x, y = combinedFrame:GetPoint(1)
+        if point then
+            combinedFrame:ClearAllPoints()
+            combinedFrame:SetPoint(point, relativeTo, relativePoint, x, y + liftAmount)
+        end
+    end)
+    if not ok and BB.debug then
+        print("|cffff4444BagBorders:|r failed to hook UpdateContainerFrameAnchors - " .. tostring(err))
+    end
 end)
