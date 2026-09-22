@@ -41,8 +41,8 @@ local function GetOrCreateBorder(itemButton)
     if not border then
         border = itemButton:CreateTexture(nil, "OVERLAY", nil, 0)
         border:SetTexture(BORDER_TEXTURE)
-        border:SetPoint("TOPLEFT", itemButton, "TOPLEFT", -3, 3)
-        border:SetPoint("BOTTOMRIGHT", itemButton, "BOTTOMRIGHT", 3, -3)
+        border:SetPoint("TOPLEFT", itemButton, "TOPLEFT", 0, 0)
+        border:SetPoint("BOTTOMRIGHT", itemButton, "BOTTOMRIGHT", 0, 0)
         itemButton.BagBordersBorder = border
     end
     return border
