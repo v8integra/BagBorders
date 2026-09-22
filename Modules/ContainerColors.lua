@@ -156,6 +156,9 @@ SlashCmdList["BAGBORDERS"] = function(msg)
         if BB.RefreshBagBar then
             BB.RefreshBagBar()
         end
+        if BB.RefreshReagentPanel then
+            BB.RefreshReagentPanel()
+        end
     else
         print("BagBorders: /bagborders debug | /bagborders refresh")
     end
