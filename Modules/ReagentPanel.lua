@@ -37,9 +37,23 @@ local function CreatePanel()
         return COLUMNS
     end
 
+    function panel:GetPaddingWidth()
+        return PANEL_PADDING
+    end
+
     function panel:GetPaddingHeight()
         return PANEL_PADDING
     end
+
+    -- ContainerFrameMixin:CalculateWidth() (which this panel would otherwise
+    -- inherit unchanged) returns a fixed width sized for a normal 4-column
+    -- individual bag frame - far too narrow for this panel's 10 columns, so
+    -- items ended up spilling out past the backdrop's edge instead of being
+    -- covered by it. ContainerFrameCombinedBagsMixin:CalculateWidth uses a
+    -- proper column-based formula instead; reuse that exact function (it's a
+    -- closure that correctly captures Blizzard's own ITEM_SPACING_X, which
+    -- this addon has no direct access to) rather than reimplementing it.
+    panel.CalculateWidth = ContainerFrameCombinedBagsMixin.CalculateWidth
 
     -- Give the panel its own backdrop, using the same fill color Blizzard's
     -- own bag window uses (GetBackgroundColor is inherited from
