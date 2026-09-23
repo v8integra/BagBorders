@@ -1,7 +1,5 @@
 # BagBorders
 
-*(working title — rename before publishing; see CLAUDE.md)*
-
 A World of Warcraft: Forever addon that visually distinguishes individual bags when "Combined Bags" mode is enabled.
 
 ## Status
@@ -14,12 +12,10 @@ All three features implemented and confirmed working in-game. Currently implemen
 - **Feature 2b: Bag Bar Free Slot Count** (`Modules/BagBar.lua`) — same idea, applied to the equipped-bag icons on the main bag bar (`MainMenuBarBackpackButton`, `CharacterBag0-3Slot`, `CharacterReagentBag0Slot`). The backpack icon shows the *combined* free-slot total across all general bags; each special (quiver/ammo pouch) bag shows its own count on its own icon; the reagent bag always shows its own count (teal) on its own icon, since it's never part of that general total. Labels sit top-right, clear of Blizzard's own bottom-right item count. Refreshes on `BAG_UPDATE_DELAYED` (the same event Blizzard's own bag-slot buttons use), not by hooking any Blizzard function.
 - **Feature 3: Reagent Bag Panel** (`Modules/ReagentPanel.lua`) — the reagent bag normally opens as its own separate window, never part of the combined view. This attaches a second, chrome-less item grid directly below `ContainerFrameCombinedBags` showing the reagent bag's own slots (teal-bordered, matching its bag bar color), so crafting materials read as visually separated from general bags without needing a second window. Built by mixing in `ContainerFrameMixin` on a plain frame — reuses Blizzard's own real item-grid/click/drag logic rather than reimplementing it, only skipping the title-bar/portrait/search-box parts a full bag window has that this panel doesn't need. Bordered with a bronze-tinted `SetBackdrop` edge (nine-slice corner art turned out to always render at a fixed pixel size, too large for a panel this short — see CLAUDE.md for the full story) and hooks the global `UpdateContainerFrameAnchors` to lift the main window up by the panel's height whenever the reagent bag is equipped, so the panel clears the bag bar instead of overlapping it. Only tested so far against a small (one-row) reagent bag — worth a follow-up look with a larger one.
 
-The color palette and special-bag color are still first-pass placeholders — see [CLAUDE.md](CLAUDE.md) for the open items list.
-
 ## Installation (development)
 
 Clone or symlink this folder into your WoW `Interface/AddOns` directory as `BagBorders`, then enable it at the character select screen.
 
 ## Distribution
 
-Targeting CurseForge once a first usable build exists. Final addon name still TBD — check for a CurseForge naming collision before publishing.
+Targeting CurseForge once a first usable build exists.
