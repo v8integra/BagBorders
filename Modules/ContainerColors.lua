@@ -12,6 +12,9 @@ local GENERAL_PALETTE = {
 -- Fixed color for special bags (quiver/ammo pouch), independent of slot position.
 local SPECIAL_COLOR = { r = 1.00, g = 0.85, b = 0.10 } -- gold
 
+-- Fixed color for the reagent bag, which doesn't take part in the palette cycle.
+local REAGENT_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal
+
 -- bagFamily bit flags for Quiver (1) and Ammo Pouch (2).
 local SPECIAL_BAG_FAMILY_MASK = 0x3
 
@@ -25,6 +28,7 @@ end
 -- and its color stay defined in exactly one place.
 BB.IsSpecialBagFamily = IsSpecialBagFamily
 BB.SPECIAL_COLOR = SPECIAL_COLOR
+BB.REAGENT_COLOR = REAGENT_COLOR
 
 local bagColors = {}
 local nextPaletteIndex = 1
@@ -35,7 +39,9 @@ local function GetColorForBag(bagID, bagFamily)
         return color
     end
 
-    if IsSpecialBagFamily(bagFamily) then
+    if bagID > NUM_BAG_FRAMES then
+        color = REAGENT_COLOR
+    elseif IsSpecialBagFamily(bagFamily) then
         color = SPECIAL_COLOR
     else
         color = GENERAL_PALETTE[((nextPaletteIndex - 1) % #GENERAL_PALETTE) + 1]
@@ -156,11 +162,11 @@ SlashCmdList["BAGBORDERS"] = function(msg)
         if BB.RefreshBagBar then
             BB.RefreshBagBar()
         end
-        if BB.RefreshReagentPanel then
-            BB.RefreshReagentPanel()
-        end
+    elseif msg == "reagent" then
+        BB.db.settings.reagentInCombined = not BB.db.settings.reagentInCombined
+        print("BagBorders: reagent bag in combined window " .. (BB.db.settings.reagentInCombined and "on" or "off") .. " - /reload to apply")
     else
-        print("BagBorders: /bagborders debug | /bagborders refresh")
+        print("BagBorders: /bagborders debug | refresh | reagent")
     end
 end
 

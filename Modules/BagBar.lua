@@ -1,7 +1,7 @@
 local ADDON_NAME, BB = ...
 
 local GENERAL_LABEL_COLOR = { r = 1.00, g = 1.00, b = 1.00 } -- white
-local REAGENT_LABEL_COLOR = { r = 0.30, g = 0.85, b = 0.75 } -- teal
+local REAGENT_LABEL_COLOR = BB.REAGENT_COLOR
 
 local GENERAL_BAG_BUTTON_NAMES = {
     "CharacterBag0Slot",

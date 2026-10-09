@@ -1,7 +1,11 @@
 local ADDON_NAME, BB = ...
 
 BB.DEFAULTS = {
-    settings = {},
+    settings = {
+        -- Show the reagent bag inside the combined bag window. Read once at
+        -- load (it flips a Blizzard global), so changing it needs a /reload.
+        reagentInCombined = true,
+    },
 }
 
 local function ApplyDefaults(defaults, target)
