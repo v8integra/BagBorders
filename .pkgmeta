@@ -1,0 +1,7 @@
+# CurseForge / BigWigs packager settings: what goes into the release zip.
+package-as: BagBorders
+
+ignore:
+  - docs
+  - .gitignore
+  - .pkgmeta

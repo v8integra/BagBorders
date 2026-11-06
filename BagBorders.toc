@@ -1,12 +1,24 @@
 ## Interface: 16001
 ## Title: BagBorders
-## Notes: Colors bag slot borders by originating bag in Combined Bags mode.
+## Notes: All-in-one bag window with per-bag colored borders and free-slot counts.
 ## Author: Keith Francis
-## Version: 0.1.0
+## Version: 0.9.0
 ## SavedVariables: BagBordersDB
 ## IconTexture: Interface\AddOns\BagBorders\Media\Icon\BagBordersIcon.tga
 
 Core\Core.lua
+Locales\enUS.lua
+Data\Characters.lua
 Modules\ContainerColors.lua
 Modules\BagBar.lua
 Modules\CombinedLayout.lua
+Modules\ReagentDock.lua
+Modules\ItemLevel.lua
+Modules\TooltipCounts.lua
+UI\BagWindow.lua
+UI\BagStrip.lua
+UI\Takeover.lua
+UI\BankWindow.lua
+UI\BankTakeover.lua
+UI\AltViewer.lua
+Options\Options.lua

@@ -2,9 +2,23 @@ local ADDON_NAME, BB = ...
 
 BB.DEFAULTS = {
     settings = {
-        -- Show the reagent bag inside the combined bag window. Read once at
-        -- load (it flips a Blizzard global), so changing it needs a /reload.
-        reagentInCombined = true,
+        -- In combined mode, make the Toggle Backpack key open all bags so the
+        -- reagent bag opens with the combined window (Modules/ReagentDock.lua).
+        openReagentWithBackpack = true,
+        -- BagBorders' own all-in-one bag window (UI/). Read once at load, so
+        -- changing it needs a /reload. Off = Blizzard's windows + the dock.
+        window = true,
+        columns = 10,
+        scale = 1,
+        locked = false,
+        windowPos = nil, -- { point, relativePoint, x, y }, set when dragged
+        bankColumns = 14,
+        bankPos = nil,
+        bagStrip = true,   -- equipped-bag strip under the search box
+        hiddenBags = {},   -- [bagID] = true: slots hidden while the strip is open
+        itemLevel = true,  -- item level on gear in the bag and bank windows
+        bgAlpha = 0.92,    -- bag/bank window background opacity
+        tooltipCounts = true, -- item tooltips list counts on your other characters
     },
 }
 
@@ -38,6 +52,9 @@ loader:SetScript("OnEvent", function(self, event, loadedAddon)
 
     BagBordersDB = ApplyDefaults(BB.DEFAULTS, BagBordersDB)
     BB.db = BagBordersDB
+
+    -- Fixed for the session: the takeover can't be undone without a /reload.
+    BB.windowActive = BB.db.settings.window and not InputUtil.IsGamepadUIEnabled()
 
     for _, callback in ipairs(BB.readyCallbacks) do
         callback()
